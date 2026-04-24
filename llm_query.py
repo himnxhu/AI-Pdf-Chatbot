@@ -1,11 +1,18 @@
+import os
+
+from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
+
+
+load_dotenv()
 
 def get_llm():
 
     llm = ChatOllama(
-        model="mistral",
-        temperature=0.2,
-        num_gpu=0
+        model=os.getenv("OLLAMA_MODEL", "mistral"),
+        temperature=float(os.getenv("LLM_TEMPERATURE", "0.2")),
+        num_gpu=int(os.getenv("OLLAMA_NUM_GPU", "0")),
+        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     )
 
     return llm

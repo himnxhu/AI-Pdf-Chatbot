@@ -1,22 +1,37 @@
-📄 AI PDF Chatbot (RAG Based)
+# AI PDF Chatbot
 
-An AI-powered PDF Question Answering System that allows users to upload a PDF document and ask questions about its content.
-The system retrieves relevant information from the document and generates accurate answers using a Retrieval-Augmented Generation (RAG) pipeline.
+An AI-powered PDF question answering system built around a Retrieval-Augmented Generation (RAG) pipeline. The repository now contains both the original Streamlit app and a website-backed FastAPI service for PDF upload and document Q&A.
 
-This project demonstrates practical use of LLMs, Vector Databases, and Embeddings to build intelligent document assistants.
+## Features
 
-🚀 Features
-📄 Upload and analyze PDF documents
-🤖 Ask natural language questions about the document
-🔍 Semantic search using embeddings
-🧠 Context-aware answers using LLM
-⚡ Fast document retrieval with vector database
-🖥 Interactive UI built with Streamlit
-💻 Runs locally using Ollama models
-🧠 How It Works (RAG Pipeline)
+- Upload and analyze PDF documents
+- Ask natural language questions about document content
+- Semantic search using embeddings
+- Context-aware answers using an LLM
+- FastAPI web UI and API for browser-based usage
+- Docker and Docker Compose support
+- Local Ollama-backed inference
 
-The system follows a Retrieval-Augmented Generation architecture.
+## Project Structure
 
+```text
+ai-pdf-chatbot/
+├── app.py                # Streamlit UI
+├── main.py               # FastAPI entrypoint
+├── rag_service.py        # FastAPI service helpers
+├── document_loader.py    # Loads PDF files
+├── rag_pipeline.py       # Splits documents into chunks
+├── embeddings.py         # Creates embeddings
+├── vector_store.py       # Creates vector database
+├── llm_query.py          # LLM interaction
+├── static/               # Website assets
+├── requirements.txt
+└── README.md
+```
+
+## RAG Pipeline
+
+```text
 PDF Document
       ↓
 Text Extraction
@@ -36,144 +51,76 @@ Relevant Context Retrieval
 LLM (Mistral / Phi3 via Ollama)
       ↓
 Final AI Answer
-🏗 Architecture
-User Interface (Streamlit)
-          │
-          ▼
-    Question Input
-          │
-          ▼
-   Vector Similarity Search
-          │
-          ▼
- Retrieve Relevant Chunks
-          │
-          ▼
-        LLM
-          │
-          ▼
-     Generated Answer
-🛠 Tech Stack
-Programming
-Python
-AI / ML
-LangChain
-Sentence Transformers
-RAG (Retrieval-Augmented Generation)
-LLM
-Ollama
-Mistral / Phi3
-Vector Database
-ChromaDB
-UI
-Streamlit
-Other Tools
-PyPDFLoader
-HuggingFace Embeddings
-📂 Project Structure
-ai-pdf-chatbot
-│
-├── app.py                # Streamlit UI
-├── test_rag.py           # CLI testing script
-│
-├── document_loader.py    # Loads PDF files
-├── rag_pipeline.py       # Splits documents into chunks
-├── embeddings.py         # Creates embeddings
-├── vector_store.py       # Creates vector database
-├── llm_query.py          # LLM interaction
-│
-├── data/
-│   └── sample.pdf
-│
-├── requirements.txt
-└── README.md
-⚙ Installation
-1️⃣ Clone Repository
-git clone https://github.com/yourusername/ai-pdf-chatbot.git
-cd ai-pdf-chatbot
-2️⃣ Create Virtual Environment
-python -m venv venv
+```
 
-Activate environment
+## Run Locally
 
-Windows
-
-venv\Scripts\activate
-
-Mac/Linux
-
-source venv/bin/activate
-3️⃣ Install Dependencies
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-4️⃣ Install Ollama
+uvicorn main:app --reload
+```
 
-Download and install:
+Open `http://127.0.0.1:8000`.
 
-https://ollama.com
+If Ollama is running on your machine, pull the model first:
 
-5️⃣ Pull LLM Model
+```powershell
+ollama pull mistral
+```
 
-Example:
+## Run With Docker
 
-ollama run mistral
+1. Copy `.env.example` to `.env`.
+2. Start the stack:
 
-or lightweight model
+```powershell
+docker compose up --build
+```
 
-ollama run phi3
-▶ Run The Application
-Start Streamlit UI
-streamlit run app.py
+3. In a separate terminal, load the model into the Ollama container:
 
-Open browser:
+```powershell
+docker exec -it ai-pdf-chatbot-ollama ollama pull mistral
+```
 
-http://localhost:8501
+Open `http://127.0.0.1:8000`.
 
-Upload a PDF and start asking questions.
+## API Overview
 
-💬 Example Questions
-What is the transformer architecture?
-Who wrote this paper?
-Explain the main idea of the document.
-What does Figure 1 represent?
-📊 Challenges Faced
-Memory limitations when running local LLMs
-GPU allocation issues with Ollama
-Optimizing chunk size for better retrieval
-Preventing hallucinations using strict context prompts
-🔮 Future Improvements
-Multi-PDF support
-Chat history memory
-Faster vector databases (FAISS)
-Cloud deployment (AWS / GCP)
-Voice interaction
-🌍 Real World Applications
-Research paper assistant
-Legal document analysis
-Enterprise knowledge base
-Customer support automation
-Academic document search
-📸 Demo
+- `GET /` serves the website UI
+- `POST /api/upload` stores and indexes a PDF
+- `POST /api/ask` answers questions for one uploaded document
 
-(Add screenshots or GIF of Streamlit UI here)
+Each uploaded PDF gets its own vector store under `storage/vectorstores`.
 
-Example:
+## Notes
 
-/screenshots/ui.png
-👨‍💻 Author
+- The current LLM backend is `Ollama` with the `mistral` model
+- The app reads `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_NUM_GPU`, and `LLM_TEMPERATURE` from the environment
+- The `.env` Google API key is not used by the current code path
+- The old Streamlit app remains in `app.py`
 
-Himanshu Upadhyay
+## Tech Stack
 
-B.Tech Computer Science (Data Science)
+- Python
+- FastAPI
+- Streamlit
+- LangChain
+- Sentence Transformers
+- ChromaDB
+- Ollama
 
-Interested in:
+## Example Questions
 
-Artificial Intelligence
-Data Science
-Machine Learning
-AI Applications
-⭐ If you like this project
+- What is the transformer architecture?
+- Who wrote this paper?
+- Explain the main idea of the document.
+- What does Figure 1 represent?
 
-Give the repository a star ⭐
-_____________________________________________________________________________________________________________________________
+## Production Direction
 
-RAG | LangChain | LLM | Ollama | Vector Database | Streamlit
+- Deploy the FastAPI app as a containerized web service
+- Run Ollama as a separate service or replace it with a hosted model API
+- Move uploads and document metadata out of local disk for multi-instance deployment

@@ -1,6 +1,10 @@
 venv/
+.venv/
 __pycache__/
 .env
+.codex_tmp/
+storage/
+db/
 *.pyc
 *.pyo
 *.pyd

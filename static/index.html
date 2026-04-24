@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI PDF Chatbot</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Document Q&A</p>
+      <h1>Upload a PDF and query it through a local RAG pipeline.</h1>
+      <p class="lede">
+        This website stores each uploaded PDF separately, embeds it, and answers only from retrieved document context.
+      </p>
+    </section>
+
+    <section class="panel">
+      <form id="upload-form" class="stack">
+        <label class="field">
+          <span>Choose PDF</span>
+          <input id="pdf-file" name="file" type="file" accept="application/pdf" required>
+        </label>
+        <button type="submit">Upload and Process</button>
+      </form>
+      <p id="upload-status" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <form id="question-form" class="stack">
+        <label class="field">
+          <span>Ask a question</span>
+          <textarea id="question" rows="4" placeholder="What does this PDF say about..." required></textarea>
+        </label>
+        <button type="submit">Ask</button>
+      </form>
+      <p id="question-status" class="status"></p>
+      <article id="answer-card" class="answer hidden">
+        <h2>Answer</h2>
+        <p id="answer-text"></p>
+        <h3>Retrieved Context</h3>
+        <div id="sources" class="sources"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

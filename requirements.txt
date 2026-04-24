@@ -1,5 +1,8 @@
 langchain
 langchain-community
+langchain-huggingface
+langchain-ollama
+langchain-text-splitters
 chromadb
 pypdf
 openai
@@ -8,5 +11,6 @@ streamlit
 python-dotenv
 fastapi
 uvicorn
+python-multipart
 sentence-transformers
 langchain-google-genai

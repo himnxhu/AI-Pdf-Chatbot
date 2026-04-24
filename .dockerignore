@@ -1,0 +1,13 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+.codex_tmp
+.env
+storage
+db
+temp.pdf
+*.pyc
+*.pyo
+*.pyd

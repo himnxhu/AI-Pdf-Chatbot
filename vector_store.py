@@ -1,11 +1,11 @@
 from langchain_community.vectorstores import Chroma
 
-def create_vector_store(chunks, embeddings):
+def create_vector_store(chunks, embeddings, persist_directory="db"):
 
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
-        persist_directory="db"
+        persist_directory=persist_directory
     )
 
     return vectorstore
