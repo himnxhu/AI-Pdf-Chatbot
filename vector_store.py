@@ -9,3 +9,11 @@ def create_vector_store(chunks, embeddings, persist_directory="db"):
     )
 
     return vectorstore
+
+
+def load_vector_store(embeddings, persist_directory="db"):
+
+    return Chroma(
+        persist_directory=persist_directory,
+        embedding_function=embeddings,
+    )

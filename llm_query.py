@@ -1,18 +1,20 @@
 import os
 
 from dotenv import load_dotenv
-from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+from network_config import ignore_dead_local_proxy
 
 
 load_dotenv()
+ignore_dead_local_proxy()
 
 def get_llm():
 
-    llm = ChatOllama(
-        model=os.getenv("OLLAMA_MODEL", "mistral"),
+    llm = ChatGoogleGenerativeAI(
+        model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
         temperature=float(os.getenv("LLM_TEMPERATURE", "0.2")),
-        num_gpu=int(os.getenv("OLLAMA_NUM_GPU", "0")),
-        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     )
 
     return llm

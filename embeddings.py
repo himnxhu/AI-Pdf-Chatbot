@@ -1,9 +1,19 @@
-from langchain_huggingface import HuggingFaceEmbeddings
+import os
+
+from dotenv import load_dotenv
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+from network_config import ignore_dead_local_proxy
+
+
+load_dotenv()
+ignore_dead_local_proxy()
 
 def get_embeddings():
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model=os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001"),
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
     )
 
     return embeddings

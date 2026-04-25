@@ -8,9 +8,35 @@
 </head>
 <body>
   <main class="shell">
+    <section id="login-view" class="panel auth-panel">
+      <p class="eyebrow">Secure Access</p>
+      <h1>AI PDF Chatbot</h1>
+      <form id="login-form" class="stack auth-form">
+        <label class="field">
+          <span>Email</span>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <div class="actions">
+          <button type="submit">Log In</button>
+          <button id="signup-button" type="button" class="secondary">Create Account</button>
+        </div>
+      </form>
+      <p id="auth-status" class="status"></p>
+    </section>
+
+    <div id="app-view" class="hidden">
+      <div class="topbar">
+        <p id="user-email" class="status"></p>
+        <button id="logout-button" type="button" class="secondary">Log Out</button>
+      </div>
+
     <section class="hero">
       <p class="eyebrow">Document Q&A</p>
-      <h1>Upload a PDF and query it through a local RAG pipeline.</h1>
+      <h1>Upload a PDF and query it through a Gemini RAG pipeline.</h1>
       <p class="lede">
         This website stores each uploaded PDF separately, embeds it, and answers only from retrieved document context.
       </p>
@@ -43,8 +69,9 @@
         <div id="sources" class="sources"></div>
       </article>
     </section>
+    </div>
   </main>
 
-  <script src="/static/app.js"></script>
+  <script type="module" src="/static/app.js"></script>
 </body>
 </html>

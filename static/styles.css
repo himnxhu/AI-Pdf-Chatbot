@@ -118,6 +118,44 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.secondary {
+  color: var(--accent-dark);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(141, 63, 37, 0.24);
+  box-shadow: none;
+}
+
+.auth-panel {
+  margin-top: 56px;
+}
+
+.auth-form {
+  margin-top: 22px;
+}
+
+.actions,
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar {
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.topbar .status {
+  margin: 0;
+}
+
 .status {
   min-height: 24px;
   margin: 14px 0 0;

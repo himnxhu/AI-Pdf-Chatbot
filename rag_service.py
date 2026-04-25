@@ -5,7 +5,7 @@ from document_loader import load_pdf
 from embeddings import get_embeddings
 from llm_query import ask_llm, get_llm
 from rag_pipeline import split_documents
-from vector_store import create_vector_store
+from vector_store import create_vector_store, load_vector_store
 
 
 class RAGService:
@@ -29,7 +29,7 @@ class RAGService:
             self.llm = get_llm()
         return self.llm
 
-    def ingest_pdf(self, file_bytes, filename):
+    def ingest_pdf(self, file_bytes, filename, uid):
         document_id = str(uuid4())
         safe_name = Path(filename).name or f"{document_id}.pdf"
         file_path = self.uploads_dir / f"{document_id}_{safe_name}"
@@ -51,6 +51,8 @@ class RAGService:
             "file_path": str(file_path),
             "filename": safe_name,
             "chunks": len(chunks),
+            "uid": uid,
+            "persist_directory": str(persist_directory),
         }
 
         return {
@@ -59,11 +61,27 @@ class RAGService:
             "chunks": len(chunks),
         }
 
-    def ask(self, document_id, question, k=3):
+    def _get_vectorstore(self, document_id):
         if document_id not in self.vectorstores:
-            raise KeyError("Document not found. Upload the PDF again.")
+            persist_directory = self.vectorstores_dir / document_id
+            if not persist_directory.exists():
+                raise KeyError("Document not found. Upload the PDF again.")
+            self.vectorstores[document_id] = {
+                "vectorstore": load_vector_store(
+                    self._get_embeddings(),
+                    persist_directory=str(persist_directory),
+                ),
+                "persist_directory": str(persist_directory),
+            }
+        return self.vectorstores[document_id]["vectorstore"]
 
-        vectorstore = self.vectorstores[document_id]["vectorstore"]
+    def ask(self, document_id, question, uid, k=3):
+        if document_id in self.vectorstores:
+            owner_uid = self.vectorstores[document_id].get("uid")
+            if owner_uid and owner_uid != uid:
+                raise PermissionError("You do not have access to this document.")
+
+        vectorstore = self._get_vectorstore(document_id)
         results = vectorstore.similarity_search(question, k=k)
         context = "\n".join(doc.page_content for doc in results)
         answer = ask_llm(self._get_llm(), context, question)
