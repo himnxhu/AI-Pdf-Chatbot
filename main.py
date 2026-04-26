@@ -110,11 +110,10 @@ async def ask_question(
     if not question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    if firebase_service.enabled and not firebase_service.get_document(
-        user["uid"],
-        document_id,
-    ):
-        raise HTTPException(status_code=404, detail="Document not found. Upload the PDF again.")
+    if firebase_service.firestore_enabled:
+        document = firebase_service.get_document(user["uid"], document_id)
+        if firebase_service.firestore_enabled and not document:
+            raise HTTPException(status_code=404, detail="Document not found. Upload the PDF again.")
 
     try:
         return rag_service.ask(

@@ -5,6 +5,7 @@ __pycache__/
 .codex_tmp/
 storage/
 db/
+temp.pdf
 *.pyc
 *.pyo
 *.pyd

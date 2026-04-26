@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timezone
 
 import firebase_admin
+from google.api_core.exceptions import NotFound
 from firebase_admin import auth, credentials, firestore
 
 
@@ -29,6 +30,13 @@ class FirebaseService:
         self.firestore_database_id = os.getenv("FIRESTORE_DATABASE_ID", "(default)")
         self.db = firestore.client(database_id=self.firestore_database_id)
 
+    @property
+    def firestore_enabled(self):
+        return self.db is not None
+
+    def _disable_firestore(self):
+        self.db = None
+
     def verify_token(self, token):
         if not self.enabled:
             return {"uid": "local-dev", "email": None}
@@ -43,21 +51,29 @@ class FirebaseService:
             "uid": uid,
             "created_at": datetime.now(timezone.utc),
         }
-        self.db.collection("users").document(uid).collection("documents").document(
-            document["document_id"]
-        ).set(payload)
+        try:
+            self.db.collection("users").document(uid).collection("documents").document(
+                document["document_id"]
+            ).set(payload)
+        except NotFound:
+            self._disable_firestore()
 
     def get_document(self, uid, document_id):
         if not self.db:
             return None
 
-        snapshot = (
-            self.db.collection("users")
-            .document(uid)
-            .collection("documents")
-            .document(document_id)
-            .get()
-        )
+        try:
+            snapshot = (
+                self.db.collection("users")
+                .document(uid)
+                .collection("documents")
+                .document(document_id)
+                .get()
+            )
+        except NotFound:
+            self._disable_firestore()
+            return None
+
         if not snapshot.exists:
             return None
         return snapshot.to_dict()
