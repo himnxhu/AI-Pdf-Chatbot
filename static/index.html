@@ -50,6 +50,17 @@
         </label>
         <button type="submit">Upload and Process</button>
       </form>
+      <div id="upload-activity" class="activity document-activity hidden" aria-hidden="true">
+        <div class="document-loader">
+          <span class="sheet sheet-back"></span>
+          <span class="sheet sheet-mid"></span>
+          <span class="sheet sheet-front"></span>
+        </div>
+        <div>
+          <strong>Reading your PDF</strong>
+          <span>Extracting pages, creating chunks, and preparing search context.</span>
+        </div>
+      </div>
       <p id="upload-status" class="status"></p>
     </section>
 
@@ -61,6 +72,17 @@
         </label>
         <button type="submit">Ask</button>
       </form>
+      <div id="question-activity" class="activity analysis-activity hidden" aria-hidden="true">
+        <div class="analysis-loader">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div>
+          <strong>Analysing document context</strong>
+          <span>Searching relevant chunks and composing an answer.</span>
+        </div>
+      </div>
       <p id="question-status" class="status"></p>
       <article id="answer-card" class="answer hidden">
         <h2>Answer</h2>

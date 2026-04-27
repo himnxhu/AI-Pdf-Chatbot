@@ -18,6 +18,8 @@ const uploadForm = document.getElementById("upload-form");
 const questionForm = document.getElementById("question-form");
 const uploadStatus = document.getElementById("upload-status");
 const questionStatus = document.getElementById("question-status");
+const uploadActivity = document.getElementById("upload-activity");
+const questionActivity = document.getElementById("question-activity");
 const answerCard = document.getElementById("answer-card");
 const answerText = document.getElementById("answer-text");
 const sources = document.getElementById("sources");
@@ -30,6 +32,20 @@ function setAuthFormDisabled(disabled) {
   loginForm.querySelectorAll("input, button").forEach((item) => {
     item.disabled = disabled;
   });
+}
+
+function setFormDisabled(form, disabled) {
+  form.querySelectorAll("input, textarea, button").forEach((item) => {
+    item.disabled = disabled;
+  });
+}
+
+function setActivity(activity, form, active) {
+  const panel = form.closest(".panel");
+  activity.classList.toggle("hidden", !active);
+  activity.setAttribute("aria-hidden", String(!active));
+  panel.classList.toggle("is-busy", active);
+  setFormDisabled(form, active);
 }
 
 async function initAuth() {
@@ -52,6 +68,8 @@ async function initAuth() {
     answerCard.classList.add("hidden");
     uploadStatus.textContent = "";
     questionStatus.textContent = "";
+    setActivity(uploadActivity, uploadForm, false);
+    setActivity(questionActivity, questionForm, false);
 
     if (user) {
       userEmail.textContent = user.email || "Signed in";
@@ -127,6 +145,7 @@ uploadForm.addEventListener("submit", async (event) => {
   uploadStatus.textContent = "Uploading and processing...";
   questionStatus.textContent = "";
   answerCard.classList.add("hidden");
+  setActivity(uploadActivity, uploadForm, true);
 
   const formData = new FormData();
   formData.append("file", file);
@@ -147,6 +166,8 @@ uploadForm.addEventListener("submit", async (event) => {
     uploadStatus.textContent = `Ready: ${data.filename} processed into ${data.chunks} chunks.`;
   } catch (error) {
     uploadStatus.textContent = error.message;
+  } finally {
+    setActivity(uploadActivity, uploadForm, false);
   }
 });
 
@@ -166,6 +187,7 @@ questionForm.addEventListener("submit", async (event) => {
 
   questionStatus.textContent = "Querying document...";
   answerCard.classList.add("hidden");
+  setActivity(questionActivity, questionForm, true);
 
   const formData = new FormData();
   formData.append("document_id", documentId);
@@ -197,6 +219,8 @@ questionForm.addEventListener("submit", async (event) => {
     questionStatus.textContent = "Response generated.";
   } catch (error) {
     questionStatus.textContent = error.message;
+  } finally {
+    setActivity(questionActivity, questionForm, false);
   }
 });
 
