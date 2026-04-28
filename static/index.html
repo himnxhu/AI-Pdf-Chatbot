@@ -34,63 +34,77 @@
         <button id="logout-button" type="button" class="secondary">Log Out</button>
       </div>
 
-    <section class="hero">
-      <p class="eyebrow">Document Q&A</p>
-      <h1>Upload a PDF and query it through a Gemini RAG pipeline.</h1>
-      <p class="lede">
-        This website stores each uploaded PDF separately, embeds it, and answers only from retrieved document context.
-      </p>
-    </section>
+      <div class="app-layout">
+        <aside class="history-panel">
+          <div class="section-heading">
+            <p class="eyebrow">Recent</p>
+            <span>Last 7 sessions</span>
+          </div>
+          <div id="history-list" class="history-list"></div>
+          <p id="history-status" class="status"></p>
+        </aside>
 
-    <section class="panel">
-      <form id="upload-form" class="stack">
-        <label class="field">
-          <span>Choose PDF</span>
-          <input id="pdf-file" name="file" type="file" accept="application/pdf" required>
-        </label>
-        <button type="submit">Upload and Process</button>
-      </form>
-      <div id="upload-activity" class="activity document-activity hidden" aria-hidden="true">
-        <div class="document-loader">
-          <span class="sheet sheet-back"></span>
-          <span class="sheet sheet-mid"></span>
-          <span class="sheet sheet-front"></span>
-        </div>
-        <div>
-          <strong>Reading your PDF</strong>
-          <span>Extracting pages, creating chunks, and preparing search context.</span>
+        <div class="workspace">
+          <section class="hero">
+            <p class="eyebrow">Document Q&A</p>
+            <h1>Upload a PDF and query it through a Gemini RAG pipeline.</h1>
+            <p class="lede">
+              This website stores each uploaded PDF separately, embeds it, and answers only from retrieved document context.
+            </p>
+          </section>
+
+          <section class="panel">
+            <form id="upload-form" class="stack">
+              <label class="field">
+                <span>Choose PDF</span>
+                <input id="pdf-file" name="file" type="file" accept="application/pdf" required>
+              </label>
+              <button type="submit">Upload and Process</button>
+            </form>
+            <div id="upload-activity" class="activity document-activity hidden" aria-hidden="true">
+              <div class="document-loader">
+                <span class="sheet sheet-back"></span>
+                <span class="sheet sheet-mid"></span>
+                <span class="sheet sheet-front"></span>
+              </div>
+              <div>
+                <strong>Reading your PDF</strong>
+                <span>Extracting pages, creating chunks, and preparing search context.</span>
+              </div>
+            </div>
+            <p id="upload-status" class="status"></p>
+          </section>
+
+          <section class="panel">
+            <form id="question-form" class="stack">
+              <label class="field">
+                <span>Ask a question</span>
+                <textarea id="question" rows="4" placeholder="What does this PDF say about..." required></textarea>
+              </label>
+              <button type="submit">Ask</button>
+            </form>
+            <div id="question-activity" class="activity analysis-activity hidden" aria-hidden="true">
+              <div class="analysis-loader">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div>
+                <strong>Analysing document context</strong>
+                <span>Searching relevant chunks and composing an answer.</span>
+              </div>
+            </div>
+            <p id="question-status" class="status"></p>
+            <div id="chat-history" class="chat-history"></div>
+            <article id="answer-card" class="answer hidden">
+              <h2>Answer</h2>
+              <p id="answer-text"></p>
+              <h3>Retrieved Context</h3>
+              <div id="sources" class="sources"></div>
+            </article>
+          </section>
         </div>
       </div>
-      <p id="upload-status" class="status"></p>
-    </section>
-
-    <section class="panel">
-      <form id="question-form" class="stack">
-        <label class="field">
-          <span>Ask a question</span>
-          <textarea id="question" rows="4" placeholder="What does this PDF say about..." required></textarea>
-        </label>
-        <button type="submit">Ask</button>
-      </form>
-      <div id="question-activity" class="activity analysis-activity hidden" aria-hidden="true">
-        <div class="analysis-loader">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div>
-          <strong>Analysing document context</strong>
-          <span>Searching relevant chunks and composing an answer.</span>
-        </div>
-      </div>
-      <p id="question-status" class="status"></p>
-      <article id="answer-card" class="answer hidden">
-        <h2>Answer</h2>
-        <p id="answer-text"></p>
-        <h3>Retrieved Context</h3>
-        <div id="sources" class="sources"></div>
-      </article>
-    </section>
     </div>
   </main>
 

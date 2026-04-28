@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 from uuid import uuid4
 
 from document_loader import load_pdf
@@ -74,6 +75,26 @@ class RAGService:
                 "persist_directory": str(persist_directory),
             }
         return self.vectorstores[document_id]["vectorstore"]
+
+    def delete_document(self, document_id, uid):
+        metadata = self.vectorstores.get(document_id, {})
+        owner_uid = metadata.get("uid")
+        if owner_uid and owner_uid != uid:
+            return
+
+        file_path = metadata.get("file_path")
+        persist_directory = metadata.get("persist_directory")
+
+        if not file_path:
+            for upload in self.uploads_dir.glob(f"{document_id}_*"):
+                upload.unlink(missing_ok=True)
+        else:
+            Path(file_path).unlink(missing_ok=True)
+
+        if not persist_directory:
+            persist_directory = self.vectorstores_dir / document_id
+        shutil.rmtree(persist_directory, ignore_errors=True)
+        self.vectorstores.pop(document_id, None)
 
     def ask(self, document_id, question, uid, k=3):
         if document_id in self.vectorstores:

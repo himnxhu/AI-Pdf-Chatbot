@@ -28,9 +28,20 @@ body {
 }
 
 .shell {
-  width: min(960px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
   padding: 48px 0 64px;
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.workspace {
+  min-width: 0;
 }
 
 .hero {
@@ -173,6 +184,77 @@ button:disabled {
   margin: 0;
 }
 
+.history-panel {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 252, 246, 0.78);
+  box-shadow: var(--shadow);
+  overflow: auto;
+  backdrop-filter: blur(10px);
+}
+
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.section-heading .eyebrow {
+  margin: 0;
+}
+
+.section-heading span {
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.history-item {
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
+  text-align: left;
+}
+
+.history-item:hover {
+  border-color: rgba(196, 95, 60, 0.26);
+  transform: translateY(-1px);
+}
+
+.history-item.active {
+  border-color: rgba(196, 95, 60, 0.42);
+  background: rgba(255, 247, 238, 0.9);
+}
+
+.history-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.history-meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .status {
   min-height: 24px;
   margin: 14px 0 0;
@@ -185,6 +267,33 @@ button:disabled {
   padding-top: 24px;
   border-top: 1px solid var(--line);
   animation: answer-in 460ms ease both;
+}
+
+.chat-history {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.chat-turn {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(24, 34, 47, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  animation: answer-in 360ms ease both;
+}
+
+.chat-message {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.chat-message strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent-dark);
 }
 
 .sources {
@@ -414,6 +523,26 @@ button:disabled {
     padding-top: 28px;
   }
 
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .history-panel {
+    position: static;
+    max-height: none;
+  }
+
+  .history-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .history-item {
+    min-width: 210px;
+  }
+
   .panel {
     padding: 18px;
     border-radius: 18px;
@@ -429,6 +558,7 @@ button:disabled {
   .panel,
   .activity,
   .answer,
+  .chat-turn,
   .source {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;

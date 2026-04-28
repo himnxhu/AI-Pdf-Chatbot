@@ -7,6 +7,9 @@ from google.api_core.exceptions import NotFound
 from firebase_admin import auth, credentials, firestore
 
 
+MAX_HISTORY_SESSIONS = 7
+
+
 class FirebaseService:
     def __init__(self):
         self.enabled = bool(
@@ -42,21 +45,46 @@ class FirebaseService:
             return {"uid": "local-dev", "email": None}
         return auth.verify_id_token(token)
 
+    def _serialize_datetime(self, value):
+        if isinstance(value, datetime):
+            return value.isoformat()
+        return value
+
+    def _serialize_document(self, data):
+        return {
+            key: self._serialize_datetime(value)
+            for key, value in data.items()
+        }
+
+    def _delete_document_session(self, uid, document_id):
+        document_ref = (
+            self.db.collection("users")
+            .document(uid)
+            .collection("documents")
+            .document(document_id)
+        )
+        for question in document_ref.collection("questions").stream():
+            question.reference.delete()
+        document_ref.delete()
+
     def save_document(self, uid, document):
         if not self.db:
-            return
+            return []
 
         payload = {
             **document,
             "uid": uid,
             "created_at": datetime.now(timezone.utc),
+            "last_activity_at": datetime.now(timezone.utc),
+            "question_count": 0,
         }
         try:
-            self.db.collection("users").document(uid).collection("documents").document(
-                document["document_id"]
-            ).set(payload)
+            documents_ref = self.db.collection("users").document(uid).collection("documents")
+            documents_ref.document(document["document_id"]).set(payload)
+            return self.prune_history(uid)
         except NotFound:
             self._disable_firestore()
+            return []
 
     def get_document(self, uid, document_id):
         if not self.db:
@@ -77,3 +105,103 @@ class FirebaseService:
         if not snapshot.exists:
             return None
         return snapshot.to_dict()
+
+    def save_question(self, uid, document_id, question, answer, sources):
+        if not self.db:
+            return
+
+        now = datetime.now(timezone.utc)
+        try:
+            document_ref = (
+                self.db.collection("users")
+                .document(uid)
+                .collection("documents")
+                .document(document_id)
+            )
+            document_ref.collection("questions").add(
+                {
+                    "question": question,
+                    "answer": answer,
+                    "sources": sources,
+                    "created_at": now,
+                }
+            )
+            document_ref.update(
+                {
+                    "last_activity_at": now,
+                    "question_count": firestore.Increment(1),
+                }
+            )
+        except NotFound:
+            self._disable_firestore()
+
+    def list_history(self, uid):
+        if not self.db:
+            return []
+
+        try:
+            snapshots = (
+                self.db.collection("users")
+                .document(uid)
+                .collection("documents")
+                .order_by("last_activity_at", direction=firestore.Query.DESCENDING)
+                .limit(MAX_HISTORY_SESSIONS)
+                .stream()
+            )
+        except NotFound:
+            self._disable_firestore()
+            return []
+
+        return [
+            self._serialize_document(snapshot.to_dict())
+            for snapshot in snapshots
+        ]
+
+    def get_history_session(self, uid, document_id):
+        document = self.get_document(uid, document_id)
+        if not document:
+            return None
+
+        try:
+            question_snapshots = (
+                self.db.collection("users")
+                .document(uid)
+                .collection("documents")
+                .document(document_id)
+                .collection("questions")
+                .order_by("created_at")
+                .stream()
+            )
+        except NotFound:
+            self._disable_firestore()
+            return None
+
+        return {
+            "document": self._serialize_document(document),
+            "questions": [
+                self._serialize_document(snapshot.to_dict())
+                for snapshot in question_snapshots
+            ],
+        }
+
+    def prune_history(self, uid):
+        if not self.db:
+            return []
+
+        snapshots = list(
+            self.db.collection("users")
+            .document(uid)
+            .collection("documents")
+            .order_by("last_activity_at", direction=firestore.Query.DESCENDING)
+            .stream()
+        )
+        expired = snapshots[MAX_HISTORY_SESSIONS:]
+        expired_ids = []
+
+        for snapshot in expired:
+            data = snapshot.to_dict()
+            document_id = data.get("document_id") or snapshot.id
+            self._delete_document_session(uid, document_id)
+            expired_ids.append(document_id)
+
+        return expired_ids

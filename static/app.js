@@ -24,10 +24,14 @@ const questionActivity = document.getElementById("question-activity");
 const answerCard = document.getElementById("answer-card");
 const answerText = document.getElementById("answer-text");
 const sources = document.getElementById("sources");
+const historyList = document.getElementById("history-list");
+const historyStatus = document.getElementById("history-status");
+const chatHistory = document.getElementById("chat-history");
 
 let auth = null;
 let currentUser = null;
 let documentId = null;
+let activeHistory = [];
 
 function setAuthFormDisabled(disabled) {
   loginForm.querySelectorAll("input, button").forEach((item) => {
@@ -49,6 +53,128 @@ function setActivity(activity, form, active) {
   setFormDisabled(form, active);
 }
 
+function formatSessionDate(value) {
+  if (!value) {
+    return "No activity yet";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Recent";
+  }
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function renderChatTurn(turn) {
+  const item = document.createElement("article");
+  item.className = "chat-turn";
+
+  const question = document.createElement("p");
+  question.className = "chat-message";
+  const questionLabel = document.createElement("strong");
+  questionLabel.textContent = "You";
+  question.append(questionLabel, document.createTextNode(turn.question));
+
+  const answer = document.createElement("p");
+  answer.className = "chat-message";
+  const answerLabel = document.createElement("strong");
+  answerLabel.textContent = "Answer";
+  answer.append(answerLabel, document.createTextNode(turn.answer));
+
+  item.append(question, answer);
+  chatHistory.appendChild(item);
+}
+
+function renderChatHistory(turns) {
+  chatHistory.innerHTML = "";
+  turns.forEach(renderChatTurn);
+}
+
+function renderHistory(sessions) {
+  activeHistory = sessions;
+  historyList.innerHTML = "";
+
+  if (!sessions.length) {
+    historyStatus.textContent = "No recent sessions yet.";
+    return;
+  }
+
+  historyStatus.textContent = "";
+  sessions.forEach((session) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "history-item";
+    button.dataset.documentId = session.document_id;
+    button.classList.toggle("active", session.document_id === documentId);
+
+    const title = document.createElement("span");
+    title.className = "history-title";
+    title.textContent = session.filename || "Untitled PDF";
+
+    const meta = document.createElement("span");
+    meta.className = "history-meta";
+    const questions = session.question_count || 0;
+    meta.textContent = `${questions} ${questions === 1 ? "question" : "questions"} - ${formatSessionDate(session.last_activity_at || session.created_at)}`;
+
+    button.append(title, meta);
+    button.addEventListener("click", () => loadHistorySession(session.document_id));
+    historyList.appendChild(button);
+  });
+}
+
+async function loadHistory() {
+  if (!currentUser) {
+    renderHistory([]);
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/history", {
+      headers: await authHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || "Could not load history.");
+    }
+    renderHistory(data.sessions || []);
+  } catch (error) {
+    historyStatus.textContent = error.message;
+  }
+}
+
+async function loadHistorySession(nextDocumentId) {
+  historyStatus.textContent = "Loading session...";
+
+  try {
+    const response = await fetch(`/api/history/${encodeURIComponent(nextDocumentId)}`, {
+      headers: await authHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || "Could not load session.");
+    }
+
+    documentId = data.document.document_id;
+    const savedTurns = data.questions || [];
+    renderHistory(activeHistory);
+    renderChatHistory(savedTurns);
+    answerCard.classList.add("hidden");
+    uploadStatus.textContent = `Loaded: ${data.document.filename}`;
+    questionStatus.textContent = savedTurns.length
+      ? "Previous questions restored. Ask another question to continue."
+      : "Session loaded. Ask a question to continue.";
+    historyStatus.textContent = "";
+  } catch (error) {
+    historyStatus.textContent = error.message;
+  }
+}
+
 async function initAuth() {
   setAuthFormDisabled(true);
   const response = await fetch("/api/config");
@@ -66,6 +192,7 @@ async function initAuth() {
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     documentId = null;
+    renderChatHistory([]);
     answerCard.classList.add("hidden");
     uploadStatus.textContent = "";
     questionStatus.textContent = "";
@@ -76,10 +203,12 @@ async function initAuth() {
       userEmail.textContent = user.email || "Signed in";
       loginView.classList.add("hidden");
       appView.classList.remove("hidden");
+      loadHistory();
       return;
     }
 
     userEmail.textContent = "";
+    renderHistory([]);
     appView.classList.add("hidden");
     loginView.classList.remove("hidden");
   });
@@ -154,6 +283,7 @@ uploadForm.addEventListener("submit", async (event) => {
 
   uploadStatus.textContent = "Uploading and processing...";
   questionStatus.textContent = "";
+  renderChatHistory([]);
   answerCard.classList.add("hidden");
   setActivity(uploadActivity, uploadForm, true);
 
@@ -174,6 +304,7 @@ uploadForm.addEventListener("submit", async (event) => {
 
     documentId = data.document_id;
     uploadStatus.textContent = `Ready: ${data.filename} processed into ${data.chunks} chunks.`;
+    await loadHistory();
   } catch (error) {
     uploadStatus.textContent = error.message;
   } finally {
@@ -225,8 +356,14 @@ questionForm.addEventListener("submit", async (event) => {
       sources.appendChild(block);
     });
 
+    renderChatTurn({
+      question,
+      answer: data.answer,
+    });
     answerCard.classList.remove("hidden");
     questionStatus.textContent = "Response generated.";
+    questionInput.value = "";
+    await loadHistory();
   } catch (error) {
     questionStatus.textContent = error.message;
   } finally {
