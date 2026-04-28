@@ -244,6 +244,7 @@ button:disabled {
   height: 64px;
   flex: 0 0 54px;
   perspective: 160px;
+  transform-style: preserve-3d;
 }
 
 .sheet {
@@ -256,6 +257,8 @@ button:disabled {
     repeating-linear-gradient(#ffffff 0 9px, #eadccc 9px 11px);
   box-shadow: 0 10px 22px rgba(54, 42, 24, 0.14);
   transform-origin: left center;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .sheet-back {
@@ -288,6 +291,7 @@ button:disabled {
   border-radius: 999px;
   background: linear-gradient(180deg, var(--accent), var(--accent-dark));
   animation: thinking-bar 900ms ease-in-out infinite;
+  will-change: height, opacity;
 }
 
 .analysis-loader span:nth-child(2) {
@@ -421,11 +425,19 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .shell > *,
+  .panel,
+  .activity,
+  .answer,
+  .source {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
   *,
   *::before,
   *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
   }
