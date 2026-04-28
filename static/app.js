@@ -27,11 +27,14 @@ const sources = document.getElementById("sources");
 const historyList = document.getElementById("history-list");
 const historyStatus = document.getElementById("history-status");
 const chatHistory = document.getElementById("chat-history");
+const newChatButton = document.getElementById("new-chat-button");
+const historySearch = document.getElementById("history-search");
 
 let auth = null;
 let currentUser = null;
 let documentId = null;
 let activeHistory = [];
+let historySearchTerm = "";
 
 function setAuthFormDisabled(disabled) {
   loginForm.querySelectorAll("input, button").forEach((item) => {
@@ -71,7 +74,7 @@ function formatSessionDate(value) {
   });
 }
 
-function renderChatTurn(turn) {
+function renderChatTurn(turn, prepend = false) {
   const item = document.createElement("article");
   item.className = "chat-turn";
 
@@ -88,25 +91,61 @@ function renderChatTurn(turn) {
   answer.append(answerLabel, document.createTextNode(turn.answer));
 
   item.append(question, answer);
+  if (prepend) {
+    chatHistory.prepend(item);
+    return;
+  }
+
   chatHistory.appendChild(item);
 }
 
 function renderChatHistory(turns) {
   chatHistory.innerHTML = "";
-  turns.forEach(renderChatTurn);
+  turns.forEach((turn) => renderChatTurn(turn));
+}
+
+function resetChatWorkspace(message = "") {
+  documentId = null;
+  renderChatHistory([]);
+  answerCard.classList.add("hidden");
+  answerText.textContent = "";
+  sources.innerHTML = "";
+  uploadStatus.textContent = message;
+  questionStatus.textContent = "";
+  uploadForm.reset();
+  questionForm.reset();
+  renderHistory(activeHistory);
 }
 
 function renderHistory(sessions) {
   activeHistory = sessions;
   historyList.innerHTML = "";
 
+  const visibleSessions = sessions.filter((session) => {
+    const query = historySearchTerm.trim().toLowerCase();
+    if (!query) {
+      return true;
+    }
+
+    return [
+      session.filename,
+      session.latest_question,
+      session.document_id,
+    ].some((value) => String(value || "").toLowerCase().includes(query));
+  });
+
   if (!sessions.length) {
     historyStatus.textContent = "No recent sessions yet.";
     return;
   }
 
+  if (!visibleSessions.length) {
+    historyStatus.textContent = "No matching chats.";
+    return;
+  }
+
   historyStatus.textContent = "";
-  sessions.forEach((session) => {
+  visibleSessions.forEach((session) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "history-item";
@@ -122,7 +161,11 @@ function renderHistory(sessions) {
     const questions = session.question_count || 0;
     meta.textContent = `${questions} ${questions === 1 ? "question" : "questions"} - ${formatSessionDate(session.last_activity_at || session.created_at)}`;
 
-    button.append(title, meta);
+    const preview = document.createElement("span");
+    preview.className = "history-preview";
+    preview.textContent = session.latest_question || "No questions asked yet.";
+
+    button.append(title, meta, preview);
     button.addEventListener("click", () => loadHistorySession(session.document_id));
     historyList.appendChild(button);
   });
@@ -265,6 +308,15 @@ questionInput.addEventListener("keydown", (event) => {
   questionForm.requestSubmit();
 });
 
+newChatButton.addEventListener("click", () => {
+  resetChatWorkspace("Start a new chat by uploading a PDF.");
+});
+
+historySearch.addEventListener("input", (event) => {
+  historySearchTerm = event.target.value;
+  renderHistory(activeHistory);
+});
+
 logoutButton.addEventListener("click", async () => {
   if (auth) {
     await signOut(auth);
@@ -359,7 +411,7 @@ questionForm.addEventListener("submit", async (event) => {
     renderChatTurn({
       question,
       answer: data.answer,
-    });
+    }, true);
     answerCard.classList.remove("hidden");
     questionStatus.textContent = "Response generated.";
     questionInput.value = "";

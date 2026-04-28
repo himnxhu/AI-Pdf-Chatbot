@@ -77,6 +77,7 @@ class FirebaseService:
             "created_at": datetime.now(timezone.utc),
             "last_activity_at": datetime.now(timezone.utc),
             "question_count": 0,
+            "latest_question": "",
         }
         try:
             documents_ref = self.db.collection("users").document(uid).collection("documents")
@@ -130,6 +131,7 @@ class FirebaseService:
                 {
                     "last_activity_at": now,
                     "question_count": firestore.Increment(1),
+                    "latest_question": question,
                 }
             )
         except NotFound:
@@ -169,7 +171,7 @@ class FirebaseService:
                 .collection("documents")
                 .document(document_id)
                 .collection("questions")
-                .order_by("created_at")
+                .order_by("created_at", direction=firestore.Query.DESCENDING)
                 .stream()
             )
         except NotFound:

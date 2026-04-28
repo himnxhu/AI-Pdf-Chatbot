@@ -215,6 +215,27 @@ button:disabled {
   color: var(--muted);
 }
 
+.history-tools {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.history-tools button {
+  width: 100%;
+}
+
+.history-search {
+  gap: 6px;
+  font-size: 0.88rem;
+}
+
+.history-search input {
+  padding: 11px 12px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
 .history-list {
   display: grid;
   gap: 8px;
@@ -255,6 +276,16 @@ button:disabled {
   color: var(--muted);
 }
 
+.history-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .status {
   min-height: 24px;
   margin: 14px 0 0;
@@ -283,6 +314,11 @@ button:disabled {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.62);
   animation: answer-in 360ms ease both;
+}
+
+.chat-turn:first-child {
+  border-color: rgba(196, 95, 60, 0.24);
+  background: rgba(255, 247, 238, 0.72);
 }
 
 .chat-message {
