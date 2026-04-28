@@ -16,6 +16,7 @@ const userEmail = document.getElementById("user-email");
 const logoutButton = document.getElementById("logout-button");
 const uploadForm = document.getElementById("upload-form");
 const questionForm = document.getElementById("question-form");
+const questionInput = document.getElementById("question");
 const uploadStatus = document.getElementById("upload-status");
 const questionStatus = document.getElementById("question-status");
 const uploadActivity = document.getElementById("upload-activity");
@@ -126,6 +127,15 @@ signupButton.addEventListener("click", async () => {
   await submitAuth("signup");
 });
 
+questionInput.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing) {
+    return;
+  }
+
+  event.preventDefault();
+  questionForm.requestSubmit();
+});
+
 logoutButton.addEventListener("click", async () => {
   if (auth) {
     await signOut(auth);
@@ -179,7 +189,7 @@ questionForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  const question = document.getElementById("question").value.trim();
+  const question = questionInput.value.trim();
   if (!question) {
     questionStatus.textContent = "Enter a question first.";
     return;
