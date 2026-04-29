@@ -142,7 +142,7 @@ class FirebaseService:
             return []
 
         try:
-            snapshots = (
+            snapshots = list(
                 self.db.collection("users")
                 .document(uid)
                 .collection("documents")
@@ -174,29 +174,35 @@ class FirebaseService:
                 .order_by("created_at", direction=firestore.Query.DESCENDING)
                 .stream()
             )
+            questions = [
+                self._serialize_document(snapshot.to_dict())
+                for snapshot in question_snapshots
+            ]
         except NotFound:
             self._disable_firestore()
             return None
 
         return {
             "document": self._serialize_document(document),
-            "questions": [
-                self._serialize_document(snapshot.to_dict())
-                for snapshot in question_snapshots
-            ],
+            "questions": questions,
         }
 
     def prune_history(self, uid):
         if not self.db:
             return []
 
-        snapshots = list(
-            self.db.collection("users")
-            .document(uid)
-            .collection("documents")
-            .order_by("last_activity_at", direction=firestore.Query.DESCENDING)
-            .stream()
-        )
+        try:
+            snapshots = list(
+                self.db.collection("users")
+                .document(uid)
+                .collection("documents")
+                .order_by("last_activity_at", direction=firestore.Query.DESCENDING)
+                .stream()
+            )
+        except NotFound:
+            self._disable_firestore()
+            return []
+
         expired = snapshots[MAX_HISTORY_SESSIONS:]
         expired_ids = []
 

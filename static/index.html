@@ -35,20 +35,30 @@
       </div>
 
       <div class="app-layout">
-        <aside class="history-panel">
-          <button id="recent-toggle" class="section-heading recent-toggle" type="button" aria-expanded="false" aria-controls="recent-content">
-            <span class="eyebrow">Recent</span>
-            <span class="recent-meta">Last 7 sessions</span>
-            <span class="recent-chevron" aria-hidden="true">v</span>
-          </button>
+        <aside class="sidebar">
+          <div class="sidebar-brand">
+            <span class="brand-mark">AI</span>
+            <span>PDF Chatbot</span>
+          </div>
+
+          <nav class="sidebar-nav" aria-label="Chat tools">
+            <button id="new-chat-button" class="sidebar-action" type="button">
+              <span class="nav-icon" aria-hidden="true">+</span>
+              <span>New Chat</span>
+            </button>
+            <label class="sidebar-search">
+              <span class="nav-icon" aria-hidden="true">S</span>
+              <span class="search-label">Search Chat</span>
+              <input id="history-search" type="search" placeholder="Search chats">
+            </label>
+            <button id="recent-toggle" class="sidebar-action recent-toggle" type="button" aria-expanded="false" aria-controls="recent-content">
+              <span class="nav-icon" aria-hidden="true">R</span>
+              <span>Recent</span>
+              <span class="recent-chevron" aria-hidden="true">v</span>
+            </button>
+          </nav>
+
           <div id="recent-content" class="recent-content hidden">
-            <div class="history-tools">
-              <button id="new-chat-button" type="button">New Chat</button>
-              <label class="field history-search">
-                <span>Search chat</span>
-                <input id="history-search" type="search" placeholder="Search documents or questions">
-              </label>
-            </div>
             <div id="history-list" class="history-list"></div>
             <p id="history-status" class="status"></p>
           </div>
