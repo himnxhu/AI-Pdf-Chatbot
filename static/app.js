@@ -33,12 +33,33 @@ const recentToggle = document.getElementById("recent-toggle");
 const recentContent = document.getElementById("recent-content");
 const searchToggle = document.getElementById("search-toggle");
 const searchContent = document.getElementById("search-content");
+const refreshPanels = [
+  uploadForm.closest(".panel"),
+  questionForm.closest(".panel"),
+];
 
 let auth = null;
 let currentUser = null;
 let documentId = null;
 let activeHistory = [];
 let historySearchTerm = "";
+let activeRequestCount = 0;
+const busyMessage = "A PDF upload or answer generation is still running. Leaving now may lose the result.";
+
+function setPageBusy(active) {
+  activeRequestCount += active ? 1 : -1;
+  activeRequestCount = Math.max(activeRequestCount, 0);
+
+  const isBusy = activeRequestCount > 0;
+  newChatButton.disabled = isBusy;
+  recentToggle.disabled = isBusy;
+  searchToggle.disabled = isBusy;
+  logoutButton.disabled = isBusy;
+}
+
+function isPageBusy() {
+  return activeRequestCount > 0;
+}
 
 function setRecentOpen(open) {
   recentToggle.setAttribute("aria-expanded", String(open));
@@ -132,6 +153,23 @@ function resetChatWorkspace(message = "") {
   uploadForm.reset();
   questionForm.reset();
   renderHistory(activeHistory);
+}
+
+function animateWorkspaceRefresh() {
+  refreshPanels.forEach((panel, index) => {
+    if (!panel) {
+      return;
+    }
+
+    panel.classList.remove("panel-refresh");
+    void panel.offsetWidth;
+    panel.style.animationDelay = `${index * 80}ms`;
+    panel.classList.add("panel-refresh");
+    panel.addEventListener("animationend", () => {
+      panel.classList.remove("panel-refresh");
+      panel.style.animationDelay = "";
+    }, { once: true });
+  });
 }
 
 function renderHistory(sessions) {
@@ -250,6 +288,8 @@ async function initAuth() {
     answerCard.classList.add("hidden");
     uploadStatus.textContent = "";
     questionStatus.textContent = "";
+    activeRequestCount = 0;
+    setPageBusy(false);
     setActivity(uploadActivity, uploadForm, false);
     setActivity(questionActivity, questionForm, false);
 
@@ -343,6 +383,7 @@ questionInput.addEventListener("keydown", (event) => {
 
 newChatButton.addEventListener("click", () => {
   resetChatWorkspace("Start a new chat by uploading a PDF.");
+  animateWorkspaceRefresh();
 });
 
 recentToggle.addEventListener("click", () => {
@@ -358,6 +399,15 @@ searchToggle.addEventListener("click", () => {
 historySearch.addEventListener("input", (event) => {
   historySearchTerm = event.target.value;
   renderHistory(activeHistory);
+});
+
+window.addEventListener("beforeunload", (event) => {
+  if (!isPageBusy()) {
+    return;
+  }
+
+  event.preventDefault();
+  event.returnValue = busyMessage;
 });
 
 logoutButton.addEventListener("click", async () => {
@@ -380,6 +430,7 @@ uploadForm.addEventListener("submit", async (event) => {
   questionStatus.textContent = "";
   renderChatHistory([]);
   answerCard.classList.add("hidden");
+  setPageBusy(true);
   setActivity(uploadActivity, uploadForm, true);
 
   const formData = new FormData();
@@ -401,6 +452,7 @@ uploadForm.addEventListener("submit", async (event) => {
     uploadStatus.textContent = error.message;
   } finally {
     setActivity(uploadActivity, uploadForm, false);
+    setPageBusy(false);
   }
 });
 
@@ -420,6 +472,7 @@ questionForm.addEventListener("submit", async (event) => {
 
   questionStatus.textContent = "Querying document...";
   answerCard.classList.add("hidden");
+  setPageBusy(true);
   setActivity(questionActivity, questionForm, true);
 
   const formData = new FormData();
@@ -457,6 +510,7 @@ questionForm.addEventListener("submit", async (event) => {
     questionStatus.textContent = error.message;
   } finally {
     setActivity(questionActivity, questionForm, false);
+    setPageBusy(false);
   }
 });
 

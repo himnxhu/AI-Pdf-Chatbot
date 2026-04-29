@@ -78,6 +78,8 @@ h1 {
 }
 
 .panel {
+  position: relative;
+  overflow: hidden;
   margin-top: 20px;
   padding: 24px;
   border: 1px solid var(--line);
@@ -86,6 +88,10 @@ h1 {
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
   animation: panel-in 560ms ease both;
+}
+
+.panel-refresh {
+  animation: panel-refresh 620ms ease both;
 }
 
 .stack {
@@ -544,6 +550,24 @@ button:disabled {
   }
 }
 
+@keyframes panel-refresh {
+  0% {
+    border-color: var(--line);
+    box-shadow: var(--shadow);
+    transform: translateY(0) scale(1);
+  }
+  38% {
+    border-color: rgba(196, 95, 60, 0.42);
+    box-shadow: 0 20px 54px rgba(141, 63, 37, 0.18);
+    transform: translateY(-3px) scale(1.01);
+  }
+  100% {
+    border-color: var(--line);
+    box-shadow: var(--shadow);
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes activity-in {
   from {
     opacity: 0;
@@ -653,6 +677,7 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .shell > *,
   .panel,
+  .panel-refresh,
   .activity,
   .answer,
   .chat-turn,
