@@ -31,6 +31,8 @@ const newChatButton = document.getElementById("new-chat-button");
 const historySearch = document.getElementById("history-search");
 const recentToggle = document.getElementById("recent-toggle");
 const recentContent = document.getElementById("recent-content");
+const searchToggle = document.getElementById("search-toggle");
+const searchContent = document.getElementById("search-content");
 
 let auth = null;
 let currentUser = null;
@@ -41,6 +43,14 @@ let historySearchTerm = "";
 function setRecentOpen(open) {
   recentToggle.setAttribute("aria-expanded", String(open));
   recentContent.classList.toggle("hidden", !open);
+}
+
+function setSearchOpen(open) {
+  searchToggle.setAttribute("aria-expanded", String(open));
+  searchContent.classList.toggle("hidden", !open);
+  if (open) {
+    historySearch.focus();
+  }
 }
 
 function setAuthFormDisabled(disabled) {
@@ -338,6 +348,11 @@ newChatButton.addEventListener("click", () => {
 recentToggle.addEventListener("click", () => {
   const isOpen = recentToggle.getAttribute("aria-expanded") === "true";
   setRecentOpen(!isOpen);
+});
+
+searchToggle.addEventListener("click", () => {
+  const isOpen = searchToggle.getAttribute("aria-expanded") === "true";
+  setSearchOpen(!isOpen);
 });
 
 historySearch.addEventListener("input", (event) => {

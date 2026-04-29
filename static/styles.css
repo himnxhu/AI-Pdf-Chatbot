@@ -228,8 +228,7 @@ button:disabled {
   gap: 8px;
 }
 
-.sidebar-action,
-.sidebar-search {
+.sidebar-action {
   width: 100%;
   min-height: 44px;
   display: grid;
@@ -246,34 +245,37 @@ button:disabled {
 }
 
 .sidebar-action:hover,
-.sidebar-search:focus-within,
-.sidebar-search:hover {
+.search-content:focus-within,
+.search-content:hover {
   border-color: rgba(196, 95, 60, 0.22);
   background: rgba(255, 255, 255, 0.7);
   transform: none;
 }
 
-.recent-toggle {
+.recent-toggle,
+.search-toggle {
   cursor: pointer;
 }
 
-.sidebar-search {
-  cursor: text;
-}
-
 .search-label {
-  font-weight: 700;
+  font-weight: 400;
 }
 
-.sidebar-search input {
-  grid-column: 1 / -1;
-  margin-top: 2px;
+.search-content {
+  padding: 0 8px 4px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  animation: answer-in 220ms ease both;
+}
+
+.search-content input {
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 0.92rem;
 }
 
-.recent-chevron {
+.recent-chevron,
+.search-chevron {
   display: inline-grid;
   width: 22px;
   height: 22px;
@@ -285,7 +287,8 @@ button:disabled {
   transition: transform 160ms ease;
 }
 
-.recent-toggle[aria-expanded="true"] .recent-chevron {
+.recent-toggle[aria-expanded="true"] .recent-chevron,
+.search-toggle[aria-expanded="true"] .search-chevron {
   transform: rotate(180deg);
 }
 
