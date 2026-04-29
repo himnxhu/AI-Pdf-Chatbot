@@ -36,19 +36,22 @@
 
       <div class="app-layout">
         <aside class="history-panel">
-          <div class="section-heading">
-            <p class="eyebrow">Recent</p>
-            <span>Last 7 sessions</span>
+          <button id="recent-toggle" class="section-heading recent-toggle" type="button" aria-expanded="false" aria-controls="recent-content">
+            <span class="eyebrow">Recent</span>
+            <span class="recent-meta">Last 7 sessions</span>
+            <span class="recent-chevron" aria-hidden="true">v</span>
+          </button>
+          <div id="recent-content" class="recent-content hidden">
+            <div class="history-tools">
+              <button id="new-chat-button" type="button">New Chat</button>
+              <label class="field history-search">
+                <span>Search chat</span>
+                <input id="history-search" type="search" placeholder="Search documents or questions">
+              </label>
+            </div>
+            <div id="history-list" class="history-list"></div>
+            <p id="history-status" class="status"></p>
           </div>
-          <div class="history-tools">
-            <button id="new-chat-button" type="button">New Chat</button>
-            <label class="field history-search">
-              <span>Search chat</span>
-              <input id="history-search" type="search" placeholder="Search documents or questions">
-            </label>
-          </div>
-          <div id="history-list" class="history-list"></div>
-          <p id="history-status" class="status"></p>
         </aside>
 
         <div class="workspace">

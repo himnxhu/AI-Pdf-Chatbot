@@ -29,12 +29,19 @@ const historyStatus = document.getElementById("history-status");
 const chatHistory = document.getElementById("chat-history");
 const newChatButton = document.getElementById("new-chat-button");
 const historySearch = document.getElementById("history-search");
+const recentToggle = document.getElementById("recent-toggle");
+const recentContent = document.getElementById("recent-content");
 
 let auth = null;
 let currentUser = null;
 let documentId = null;
 let activeHistory = [];
 let historySearchTerm = "";
+
+function setRecentOpen(open) {
+  recentToggle.setAttribute("aria-expanded", String(open));
+  recentContent.classList.toggle("hidden", !open);
+}
 
 function setAuthFormDisabled(disabled) {
   loginForm.querySelectorAll("input, button").forEach((item) => {
@@ -181,10 +188,7 @@ async function loadHistory() {
     const response = await fetch("/api/history", {
       headers: await authHeaders(),
     });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail || "Could not load history.");
-    }
+    const data = await readApiResponse(response, "Could not load history.");
     renderHistory(data.sessions || []);
   } catch (error) {
     historyStatus.textContent = error.message;
@@ -198,10 +202,7 @@ async function loadHistorySession(nextDocumentId) {
     const response = await fetch(`/api/history/${encodeURIComponent(nextDocumentId)}`, {
       headers: await authHeaders(),
     });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail || "Could not load session.");
-    }
+    const data = await readApiResponse(response, "Could not load session.");
 
     documentId = data.document.document_id;
     const savedTurns = data.questions || [];
@@ -267,6 +268,28 @@ async function authHeaders() {
   };
 }
 
+async function readApiResponse(response, fallbackMessage) {
+  const text = await response.text();
+  let data = {};
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch (error) {
+      if (response.ok) {
+        throw new Error("Server returned an invalid response.");
+      }
+      throw new Error(text || fallbackMessage);
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(data.detail || fallbackMessage);
+  }
+
+  return data;
+}
+
 async function submitAuth(mode) {
   if (!auth) {
     authStatus.textContent = "Firebase Auth is still loading. Refresh the page and try again.";
@@ -312,6 +335,11 @@ newChatButton.addEventListener("click", () => {
   resetChatWorkspace("Start a new chat by uploading a PDF.");
 });
 
+recentToggle.addEventListener("click", () => {
+  const isOpen = recentToggle.getAttribute("aria-expanded") === "true";
+  setRecentOpen(!isOpen);
+});
+
 historySearch.addEventListener("input", (event) => {
   historySearchTerm = event.target.value;
   renderHistory(activeHistory);
@@ -349,10 +377,7 @@ uploadForm.addEventListener("submit", async (event) => {
       body: formData,
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail || "Upload failed.");
-    }
+    const data = await readApiResponse(response, "Upload failed.");
 
     documentId = data.document_id;
     uploadStatus.textContent = `Ready: ${data.filename} processed into ${data.chunks} chunks.`;
@@ -393,10 +418,7 @@ questionForm.addEventListener("submit", async (event) => {
       body: formData,
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail || "Question failed.");
-    }
+    const data = await readApiResponse(response, "Question failed.");
 
     answerText.textContent = data.answer;
     sources.innerHTML = "";

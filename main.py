@@ -141,12 +141,19 @@ async def ask_question(
 
 @app.get("/api/history")
 async def list_history(user=Depends(current_user)):
-    return {"sessions": firebase_service.list_history(user["uid"])}
+    try:
+        return {"sessions": firebase_service.list_history(user["uid"])}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/api/history/{document_id}")
 async def get_history_session(document_id: str, user=Depends(current_user)):
-    session = firebase_service.get_history_session(user["uid"], document_id)
+    try:
+        session = firebase_service.get_history_session(user["uid"], document_id)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
     if not session:
         raise HTTPException(status_code=404, detail="History session not found.")
     return session
