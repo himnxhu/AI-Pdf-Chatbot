@@ -37,6 +37,13 @@ class FirebaseService:
     def firestore_enabled(self):
         return self.db is not None
 
+    def _connect_firestore(self):
+        if not self.enabled:
+            return None
+        if self.db is None:
+            self.db = firestore.client(database_id=self.firestore_database_id)
+        return self.db
+
     def _disable_firestore(self):
         self.db = None
 
@@ -57,8 +64,12 @@ class FirebaseService:
         }
 
     def _delete_document_session(self, uid, document_id):
+        db = self._connect_firestore()
+        if not db:
+            return
+
         document_ref = (
-            self.db.collection("users")
+            db.collection("users")
             .document(uid)
             .collection("documents")
             .document(document_id)
@@ -68,7 +79,8 @@ class FirebaseService:
         document_ref.delete()
 
     def save_document(self, uid, document):
-        if not self.db:
+        db = self._connect_firestore()
+        if not db:
             return []
 
         payload = {
@@ -80,7 +92,7 @@ class FirebaseService:
             "latest_question": "",
         }
         try:
-            documents_ref = self.db.collection("users").document(uid).collection("documents")
+            documents_ref = db.collection("users").document(uid).collection("documents")
             documents_ref.document(document["document_id"]).set(payload)
             return self.prune_history(uid)
         except NotFound:
@@ -88,12 +100,13 @@ class FirebaseService:
             return []
 
     def get_document(self, uid, document_id):
-        if not self.db:
+        db = self._connect_firestore()
+        if not db:
             return None
 
         try:
             snapshot = (
-                self.db.collection("users")
+                db.collection("users")
                 .document(uid)
                 .collection("documents")
                 .document(document_id)
@@ -108,13 +121,14 @@ class FirebaseService:
         return snapshot.to_dict()
 
     def save_question(self, uid, document_id, question, answer, sources):
-        if not self.db:
+        db = self._connect_firestore()
+        if not db:
             return
 
         now = datetime.now(timezone.utc)
         try:
             document_ref = (
-                self.db.collection("users")
+                db.collection("users")
                 .document(uid)
                 .collection("documents")
                 .document(document_id)
@@ -138,12 +152,13 @@ class FirebaseService:
             self._disable_firestore()
 
     def list_history(self, uid):
-        if not self.db:
+        db = self._connect_firestore()
+        if not db:
             return []
 
         try:
             snapshots = list(
-                self.db.collection("users")
+                db.collection("users")
                 .document(uid)
                 .collection("documents")
                 .order_by("last_activity_at", direction=firestore.Query.DESCENDING)
@@ -164,9 +179,13 @@ class FirebaseService:
         if not document:
             return None
 
+        db = self._connect_firestore()
+        if not db:
+            return None
+
         try:
             question_snapshots = (
-                self.db.collection("users")
+                db.collection("users")
                 .document(uid)
                 .collection("documents")
                 .document(document_id)
@@ -188,12 +207,13 @@ class FirebaseService:
         }
 
     def prune_history(self, uid):
-        if not self.db:
+        db = self._connect_firestore()
+        if not db:
             return []
 
         try:
             snapshots = list(
-                self.db.collection("users")
+                db.collection("users")
                 .document(uid)
                 .collection("documents")
                 .order_by("last_activity_at", direction=firestore.Query.DESCENDING)
